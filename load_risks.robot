@@ -3,6 +3,7 @@ Library    SeleniumLibrary
 Library    OperatingSystem
 Library    String
 Library    Collections
+Library    csv
 
 *** Variables ***
 ${MAIN_URL}     https://localhost
@@ -53,16 +54,16 @@ Verify CSV Content
 Read CSV File
     [Documentation]    Reads the CSV file and returns a list of dictionaries
     TRY
-        ${csv_content}=    Get File    ${CSV_FILE}    encoding=UTF-8
-        @{lines}=          Split To Lines    ${csv_content}
-        ${headers}=        Remove From List    ${lines}    0
+        ${risks}=    Create List
+        ${file}=    Get File    ${CSV_FILE}    encoding=UTF-8
+        @{lines}=    Split To Lines    ${file}
+        ${headers}=    Remove From List    ${lines}    0
         @{header_list}=    Split String    ${headers}    ,
-        ${risks}=          Create List
-        FOR    ${line}    IN    @{lines}
-            ${risk_data}=    Split String    ${line}    ,
+        ${csv_reader}=    Evaluate    csv.reader(${lines})
+        FOR    ${row}    IN    @{csv_reader}
             ${risk_dict}=    Create Dictionary
             FOR    ${index}    ${header}    IN ENUMERATE    @{header_list}
-                Set To Dictionary    ${risk_dict}    ${header}    ${risk_data}[${index}]
+                Set To Dictionary    ${risk_dict}    ${header}    ${row}[${index}]
             END
             Append To List    ${risks}    ${risk_dict}
         END
